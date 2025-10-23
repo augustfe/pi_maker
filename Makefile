@@ -7,6 +7,7 @@ SRC_DIR = src
 TEST_DIR = test
 BUILD_DIR = build
 BIN_DIR = bin
+DATA_DIR = data
 
 # Executables
 MAIN_EXEC = $(BIN_DIR)/main
@@ -28,6 +29,9 @@ TEST_FILES = $(wildcard $(TEST_DIR)/*.f90)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.f90, $(BUILD_DIR)/%.o, $(SRC_FILES))
 TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.f90, $(BUILD_DIR)/%.o, $(TEST_FILES))
 
+# Cache file
+CACHE_FILE = $(DATA_DIR)/pi.nc
+
 # Shared library (ctypes) setup
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -47,7 +51,7 @@ SHLIB_OBJS = $(patsubst $(SRC_DIR)/%.f90,$(BUILD_DIR)/%.o,$(SHLIB_SRCS))
 $(SHLIB_OBJS): FLAGS += -fPIC
 
 # Default target: build everything
-.PHONY: all shared clean test
+.PHONY: all shared clean test pi
 all: $(MAIN_EXEC) $(TEST_EXEC) $(SHLIB)
 
 # Build the shared library for ctypes
@@ -88,7 +92,12 @@ $(BIN_DIR):
 # Clean build and binary files
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	rm -f $(CACHE_FILE)
 
 # Run tests
 test: $(TEST_EXEC)
 	./$(TEST_EXEC)
+
+# Cache pi to file
+pi: shared
+	uv run pi-maker

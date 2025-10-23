@@ -10,4 +10,8 @@ build/*
 # editors
 .vscode
 
+# python cache
 __pycache__/
+
+# data files
+data/*
