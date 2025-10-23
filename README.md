@@ -4,6 +4,8 @@
 
 This project contains a Fortran program that reads a user-provided integer loop parameter, validates it, performs a calculation involving pi, and prints latitude longitude values.
 
+![](interactive/jittered_sine_world_map.png)
+
 ## Requirements
 ```
 A Fortran compiler, such as:
