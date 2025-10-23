@@ -91,8 +91,12 @@ else
 endif
 
 # Shared library target and sources
-SHLIB = $(BIN_DIR)/libpiopsowrap.$(SOEXT)
-SHLIB_SRCS = $(SRC_DIR)/posix.f90 $(SRC_DIR)/pi.f90 $(SRC_DIR)/pi_ctypes_wrap.f90
+SHLIB = $(BIN_DIR)/pi_maker.$(SOEXT)
+SHLIB_SRCS = $(SRC_DIR)/posix.f90 \
+             $(SRC_DIR)/pi.f90 \
+             $(SRC_DIR)/pi_ctypes_wrap.f90 \
+             $(SRC_DIR)/jittersin.f90 \
+             $(SRC_DIR)/jittersin_ctypes_wrap.f90
 SHLIB_OBJS = $(patsubst $(SRC_DIR)/%.f90,$(BUILD_DIR)/%.o,$(SHLIB_SRCS))
 
 # Ensure shared objects are PIC
@@ -119,8 +123,9 @@ $(TEST_EXEC): $(OBJ_FILES) $(TEST_OBJ_FILES) | $(BIN_DIR)
 $(BUILD_DIR)/pi.o: $(BUILD_DIR)/posix.o
 $(BUILD_DIR)/jittersin.o: $(BUILD_DIR)/pi.o
 $(BUILD_DIR)/main.o: $(BUILD_DIR)/jittersin.o
-# Shared wrapper depends on pi as well
+# Shared wrapper depends on pi_maker as well
 $(BUILD_DIR)/pi_ctypes_wrap.o: $(BUILD_DIR)/pi.o
+$(BUILD_DIR)/jittersin_ctypes_wrap.o: $(BUILD_DIR)/jittersin.o
 
 # Generic rule for compiling source files into object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.f90 | $(BUILD_DIR)
