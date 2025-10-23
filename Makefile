@@ -2,16 +2,53 @@
 FC = gfortran
 FLAGS = -Wall -Wextra -O2 -std=f2018
 
-# --- NetCDF (macOS/Homebrew) ---
-NETCDFF_PREFIX := $(shell brew --prefix netcdf-fortran)
-NETCDFC_PREFIX := $(shell brew --prefix netcdf)
+# ----------------------------
+# Platform & NetCDF detection
+# ----------------------------
+UNAME_S := $(shell uname -s)
 
-# Module include path (for netcdf.mod)
-NETCDF_INC  := -I$(NETCDFF_PREFIX)/include
+# Default: no special rpath
+RPATH_FLAGS :=
 
-# Link both Fortran and C NetCDF libs, and add rpaths for runtime
-NETCDF_LIBS := -L$(NETCDFF_PREFIX)/lib -L$(NETCDFC_PREFIX)/lib -lnetcdff -lnetcdf
-RPATH_FLAGS := -Wl,-rpath,$(NETCDFF_PREFIX)/lib -Wl,-rpath,$(NETCDFC_PREFIX)/lib
+ifeq ($(UNAME_S),Darwin)
+  # macOS
+  SOEXT          = dylib
+  SHARED_LDFLAGS = -dynamiclib
+
+  # Homebrew prefixes (simple & reliable on macOS runners)
+  NETCDFF_PREFIX := $(shell brew --prefix netcdf-fortran)
+  NETCDFC_PREFIX := $(shell brew --prefix netcdf)
+
+  # Compile-time include (netcdf.mod)
+  NETCDF_INC  := -I$(NETCDFF_PREFIX)/include
+
+  # Link both Fortran & C NetCDF, add rpaths for runtime
+  NETCDF_LIBS := -L$(NETCDFF_PREFIX)/lib -L$(NETCDFC_PREFIX)/lib -lnetcdff -lnetcdf
+  RPATH_FLAGS := -Wl,-rpath,$(NETCDFF_PREFIX)/lib -Wl,-rpath,$(NETCDFC_PREFIX)/lib
+
+else
+  # Linux
+  SOEXT          = so
+  SHARED_LDFLAGS = -shared
+
+  # Prefer nf-config if available
+  NF_CONFIG   ?= nf-config
+  NETCDF_INC  := $(shell $(NF_CONFIG) --fflags 2>/dev/null)
+  NETCDF_LIBS := $(shell $(NF_CONFIG) --flibs  2>/dev/null)
+
+  # Fallback to pkg-config if nf-config unavailable
+  ifeq ($(strip $(NETCDF_INC)$(NETCDF_LIBS)),)
+    NETCDF_INC  := $(shell pkg-config --cflags netcdf-fortran 2>/dev/null)
+    NETCDF_LIBS := $(shell pkg-config --libs   netcdf-fortran 2>/dev/null)
+  endif
+
+  # Last-resort minimal defaults (many runners have libs in default paths)
+  ifeq ($(strip $(NETCDF_LIBS)),)
+    NETCDF_INC  := $(NETCDF_INC)   # leave as-is if we at least got cflags
+    NETCDF_LIBS := -lnetcdff -lnetcdf
+  endif
+endif
+
 
 # Directory structure
 SRC_DIR = src
