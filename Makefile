@@ -2,6 +2,17 @@
 FC = gfortran
 FLAGS = -Wall -Wextra -O2 -std=f2018
 
+# --- NetCDF (macOS/Homebrew) ---
+NETCDFF_PREFIX := $(shell brew --prefix netcdf-fortran)
+NETCDFC_PREFIX := $(shell brew --prefix netcdf)
+
+# Module include path (for netcdf.mod)
+NETCDF_INC  := -I$(NETCDFF_PREFIX)/include
+
+# Link both Fortran and C NetCDF libs, and add rpaths for runtime
+NETCDF_LIBS := -L$(NETCDFF_PREFIX)/lib -L$(NETCDFC_PREFIX)/lib -lnetcdff -lnetcdf
+RPATH_FLAGS := -Wl,-rpath,$(NETCDFF_PREFIX)/lib -Wl,-rpath,$(NETCDFC_PREFIX)/lib
+
 # Directory structure
 SRC_DIR = src
 TEST_DIR = test
@@ -57,15 +68,15 @@ all: $(MAIN_EXEC) $(TEST_EXEC) $(SHLIB)
 # Build the shared library for ctypes
 shared: $(SHLIB)
 $(SHLIB): $(SHLIB_OBJS) | $(BIN_DIR)
-	$(FC) $(FLAGS) $(SHARED_LDFLAGS) -o $@ $^
+	$(FC) $(FLAGS) $(SHARED_LDFLAGS) -o $@ $^ $(NETCDF_LIBS) $(RPATH_FLAGS)
 
 # Rule for building the main program
 $(MAIN_EXEC): $(OBJ_FILES) $(MAIN_OBJ) | $(BIN_DIR)
-	$(FC) $(FLAGS) -o $@ $^
+	$(FC) $(FLAGS) -o $@ $^ $(NETCDF_LIBS) $(RPATH_FLAGS)
 
 # Rule for building the test program
 $(TEST_EXEC): $(OBJ_FILES) $(TEST_OBJ_FILES) | $(BIN_DIR)
-	$(FC) $(FLAGS) -o $@ $^
+	$(FC) $(FLAGS) -o $@ $^ $(NETCDF_LIBS) $(RPATH_FLAGS)
 
 # some manual dependencies
 $(BUILD_DIR)/pi.o: $(BUILD_DIR)/posix.o
@@ -76,11 +87,11 @@ $(BUILD_DIR)/pi_ctypes_wrap.o: $(BUILD_DIR)/pi.o
 
 # Generic rule for compiling source files into object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.f90 | $(BUILD_DIR)
-	$(FC) $(FLAGS) -c -J $(BUILD_DIR) $< -o $@
+	$(FC) $(FLAGS) $(NETCDF_INC) -c -J $(BUILD_DIR) $< -o $@
 
 # Generic rule for compiling test files into object files
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.f90 | $(BUILD_DIR)
-	$(FC) $(FLAGS) -c -J $(BUILD_DIR) $< -o $@
+	$(FC) $(FLAGS) $(NETCDF_INC) -c -J $(BUILD_DIR) $< -o $@
 
 # Ensure build and bin directories exist
 $(BUILD_DIR):

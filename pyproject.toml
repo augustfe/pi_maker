@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "cfunits>=3.3.7",
     "netcdf4>=1.7.3",
     "numpy>=2.3.4",
     "xarray>=2025.10.1",
@@ -22,6 +23,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "cfchecker>=4.1.0",
     "ipython>=9.6.0",
     "ruff>=0.14.1",
 ]

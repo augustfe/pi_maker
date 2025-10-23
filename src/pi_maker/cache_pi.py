@@ -1,5 +1,6 @@
-from pathlib import Path
+from datetime import UTC, datetime
 
+import numpy as np
 import xarray as xr
 
 from .utils import load_shared_lib, project_path
@@ -14,7 +15,7 @@ def pi_from_fortran() -> float:
     return float(lib.pi_opso_c())
 
 
-def cache_pi_to_file(filepath: str | Path | None = None) -> None:
+def cache_pi_to_file() -> None:
     """
     Compute pi using Fortran and cache the result to a file.
 
@@ -28,9 +29,25 @@ def cache_pi_to_file(filepath: str | Path | None = None) -> None:
     filepath = data_dir / "pi.nc"
     pi_value = pi_from_fortran()
 
-    ds = xr.Dataset(
-        data_vars={"pi": pi_value},
-        coords={},
-        attrs={"description": "Value of pi computed using pi::pi_opso()"},
-    )
-    ds.to_netcdf(filepath)
+    filepath.unlink(missing_ok=True)
+
+    now = datetime.now(UTC).isoformat()
+    xr.Dataset(
+        data_vars={
+            "pi": xr.DataArray(
+                np.array(pi_value, dtype=np.float64),
+                attrs={
+                    "long_name": "ratio of circumference to diameter (π)",
+                    "comment": "Computed via Fortran pi::pi_opso() and cached.",
+                },
+            )
+        },
+        attrs={
+            "Conventions": "CF-1.8",
+            "title": "Cached value of π",
+            "institution": "Metrologisk Institutt (MET Norway)",
+            "source": "Fortran function pi::pi_opso() via ctypes",
+            "history": f"{now}: created by cache_pi_to_file",
+            "references": "https://cfconventions.org/",
+        },
+    ).to_netcdf(filepath)

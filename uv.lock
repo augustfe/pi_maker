@@ -21,6 +21,21 @@ wheels = [
 ]
 
 [[package]]
+name = "cfchecker"
+version = "4.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cfunits" },
+    { name = "future" },
+    { name = "netcdf4" },
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/87/f9/15583ac34fb3525864c72c47c8f2949f71e9c4b7559cba8fe4aeac8958e8/cfchecker-4.1.0.tar.gz", hash = "sha256:10b86748565c9e0f4c959e4d82fe83b00344551db3db3c7d0d2f8c31449aa1b9", size = 37383, upload-time = "2021-05-18T10:26:05.94Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/8a/816c1c8736c44f10c22b6b26718a6960d41e99c1e723322b837bf07aa79f/cfchecker-4.1.0-py3-none-any.whl", hash = "sha256:97d58377acda15f34977e14928329e6311081d6a56e0bcaee06f516724b66873", size = 36022, upload-time = "2021-05-18T10:26:04.391Z" },
+]
+
+[[package]]
 name = "cftime"
 version = "1.6.5"
 source = { registry = "https://pypi.org/simple" }
@@ -50,6 +65,17 @@ wheels = [
 ]
 
 [[package]]
+name = "cfunits"
+version = "3.3.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cftime" },
+    { name = "numpy" },
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/94/33/6ab78579a3c3be1f7ada33b7d4b8c4db9c00bc93ba77c8913d3090d3bf24/cfunits-3.3.7.tar.gz", hash = "sha256:e271ae2c01765cc437e7eefd802846894367179e3208653ab9b520ade48286d6", size = 42692, upload-time = "2024-04-23T07:54:45.384Z" }
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -74,6 +100,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cc/28/c14e053b6762b1044f34a13aab6859bbf40456d37d23aa286ac24cfd9a5d/executing-2.2.1.tar.gz", hash = "sha256:3632cc370565f6648cc328b32435bd120a1e4ebb20c77e3fdde9a13cd1e533c4", size = 1129488, upload-time = "2025-09-01T09:48:10.866Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl", hash = "sha256:760643d3452b4d777d295bb167ccc74c64a81df23fb5e08eff250c425a4b2017", size = 28317, upload-time = "2025-09-01T09:48:08.5Z" },
+]
+
+[[package]]
+name = "future"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/b2/4140c69c6a66432916b26158687e821ba631a4c9273c474343badf84d3ba/future-1.0.0.tar.gz", hash = "sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05", size = 1228490, upload-time = "2024-02-21T11:52:38.461Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/da/71/ae30dadffc90b9006d77af76b393cb9dfbfc9629f339fc1574a1c52e6806/future-1.0.0-py3-none-any.whl", hash = "sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216", size = 491326, upload-time = "2024-02-21T11:52:35.956Z" },
 ]
 
 [[package]]
@@ -296,6 +331,7 @@ name = "pi-maker"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "cfunits" },
     { name = "netcdf4" },
     { name = "numpy" },
     { name = "xarray" },
@@ -303,12 +339,14 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "cfchecker" },
     { name = "ipython" },
     { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "cfunits", specifier = ">=3.3.7" },
     { name = "netcdf4", specifier = ">=1.7.3" },
     { name = "numpy", specifier = ">=2.3.4" },
     { name = "xarray", specifier = ">=2025.10.1" },
@@ -316,6 +354,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "cfchecker", specifier = ">=4.1.0" },
     { name = "ipython", specifier = ">=9.6.0" },
     { name = "ruff", specifier = ">=0.14.1" },
 ]
