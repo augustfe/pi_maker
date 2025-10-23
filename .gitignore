@@ -1,0 +1,11 @@
+# fortran compiled files
+*.o
+*.so
+*.mod
+
+# binaries
+bin/*
+build/*
+
+# editors
+.vscode
