@@ -331,7 +331,6 @@ name = "pi-maker"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "cfunits" },
     { name = "netcdf4" },
     { name = "numpy" },
     { name = "xarray" },
@@ -346,7 +345,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cfunits", specifier = ">=3.3.7" },
     { name = "netcdf4", specifier = ">=1.7.3" },
     { name = "numpy", specifier = ">=2.3.4" },
     { name = "xarray", specifier = ">=2025.10.1" },

@@ -1,22 +1,43 @@
 # Obvious PI Maker
 
+[![CI](https://github.com/augustfe/pi_maker/actions/workflows/ci.yml/badge.svg)](https://github.com/augustfe/pi_maker/actions/workflows/ci.yml)
+
 This project contains a Fortran program that reads a user-provided integer loop parameter, validates it, performs a calculation involving pi, and prints latitude longitude values.
 
 ## Requirements
+```
+A Fortran compiler, such as:
+    gfortran (GNU Fortran Compiler)
+    ifort (Intel Fortran Compiler)
+    nagfor (NAG Fortran Compiler)
 
-    A Fortran compiler, such as:
-        gfortran (GNU Fortran Compiler)
-        ifort (Intel Fortran Compiler)
-        nagfor (NAG Fortran Compiler)
+Operating system:
+    Linux or macOS
+```
 
-    Operating system:
-        Linux
+### Running on macOS
+
+If running on macOS, `cfchecker` requires `udunits2` to be installed. You can install it using Homebrew:
+
+```bash
+brew install udunits2
+```
+
+In order for `ctypes` to find the shared library, add this to a `.env` file in the project root:
+
+```bash
+DYLD_LIBRARY_PATH="/opt/homebrew/Cellar/udunits/2.2.28/lib/"
+```
+
+(Adjust the path according to your Homebrew installation if necessary.)
+`uv` will automatically load the `.env` file when you run commands within the `uv` environment.
 
 ## Compilation / Installation
 
 ```bash
 make
 make test
+uv sync
 ```
 
 
@@ -49,7 +70,7 @@ the Organizaton for Painfully Stating the Obvious (OPSO) and may not be changed.
 
 ### Known Issues
 
-The program runs slowly.
+The program runs slowly if `make pi` is not run.
 
 
 ### License
