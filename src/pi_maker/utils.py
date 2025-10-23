@@ -8,7 +8,7 @@ project_path = Path(__file__).parent.parent.parent.resolve()
 def _so_name() -> Path:
     """Return platform-appropriate shared library filename."""
     ext = "dylib" if sys.platform == "darwin" else "so"
-    return Path(f"libpiopsowrap.{ext}")
+    return Path(f"pi_maker.{ext}")
 
 
 def get_shared_lib_path() -> Path:
@@ -18,14 +18,14 @@ def get_shared_lib_path() -> Path:
     Raises:
         FileNotFoundError if not found.
     """
-    lib = project_path / "bin" / _so_name()
+    lib_path = project_path / "bin" / _so_name()
 
-    if not lib.is_file():
+    if not lib_path.is_file():
         raise FileNotFoundError(
-            f"Shared library not found at expected location: {lib}"
+            f"Shared library not found at expected location: {lib_path}"
             " - have you built it yet?"
         )
-    return lib
+    return lib_path
 
 
 def load_shared_lib(path: Path | None = None) -> ctypes.CDLL:
@@ -39,4 +39,11 @@ def load_shared_lib(path: Path | None = None) -> ctypes.CDLL:
     # double pi_opso_c(void);
     lib.pi_opso_c.restype = ctypes.c_double
     lib.pi_opso_c.argtypes = []
+
+    lib.jitter_sin_c.argtypes = [
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_double),
+    ]
+    lib.jitter_sin_c.restype = None
     return lib
