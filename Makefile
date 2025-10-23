@@ -80,6 +80,11 @@ TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.f90, $(BUILD_DIR)/%.o, $(TEST_FILES))
 # Cache file
 CACHE_FILE = $(DATA_DIR)/pi.nc
 
+# Absolute path to the cache file (computed at build time)
+PI_CACHE_ABS := $(abspath data/pi.nc)
+
+FLAGS += -cpp -DPI_CACHE_ABS=\"$(PI_CACHE_ABS)\"
+
 # Shared library (ctypes) setup
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)

@@ -6,13 +6,18 @@ module jittersin
 contains
 
     logical function try_read_cached_pi(pi_out) result(ok)
-        ! Read scalar 'pi' from NetCDF file at fixed path "data/pi.nc".
         use netcdf, only: nf90_open, nf90_close, nf90_inq_varid, nf90_get_var, &
                             nf90_nowrite, nf90_noerr
         implicit none
         real(8), intent(out) :: pi_out
         integer :: ncid, varid, status
+
+        ! Compile-time absolute path
+#ifdef PI_CACHE_ABS
+        character(len=*), parameter :: cache_path = PI_CACHE_ABS
+#else
         character(len=*), parameter :: cache_path = "data/pi.nc"
+#endif
 
         ok = .false.
 
