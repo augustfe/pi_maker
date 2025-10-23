@@ -9,3 +9,5 @@ build/*
 
 # editors
 .vscode
+
+__pycache__/
