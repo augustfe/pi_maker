@@ -8,22 +8,16 @@ from .utils import project_path
 
 
 def pi_from_fortran() -> float:
-    """
-    Call Fortran's pi_opso() via the C ABI wrapper pi_opso_c()
-    and return the computed value.
+    """Call Fortran's pi_opso() via the C ABI wrapper pi_opso_c()
+
+    Returns:
+        The computed value of π as a float, according to the OPSO standard.
     """
     return lib.pi_opso_c()
 
 
 def cache_pi_to_file() -> None:
-    """
-    Compute pi using Fortran and cache the result to a file.
-
-    Args:
-        filepath:
-            Path to the file where pi will be cached. Defaults to
-            `project_path / "data" / "pi.nc"
-    """
+    "Compute pi using Fortran and cache the result to a file."
     data_dir = project_path / "data"
     data_dir.mkdir(exist_ok=True)
     filepath = data_dir / "pi.nc"

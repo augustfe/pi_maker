@@ -1,0 +1,207 @@
+"""Helpers for caching jitter_sin coverage data for OGC EDR usage."""
+
+import json
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import numpy as np
+import xarray as xr
+
+from .jittersin import jitter_sin
+from .utils import project_path
+
+DAYS_PER_YEAR = 365
+JITTER_SIN_REFERENCE_DAY = 81
+
+
+def build_jittersin_dataset(
+    start_day: int = 0,
+    num_days: int = 600,
+) -> xr.Dataset:
+    """Generate an xarray dataset sampling jitter_sin across consecutive days.
+
+    The resulting dataset exposes a single data variable named ``day`` whose
+    associated coordinates describe the location of each observation in terms of
+    longitude, latitude, and calendar metadata.
+
+    Args:
+        start_day: Integer forwarded to ``jitter_sin`` for the first sample.
+        num_days: Number of consecutive days to sample starting at ``start_day``.
+
+    Returns:
+        An :class:`xarray.Dataset` containing one observation per day.
+    """
+
+    if num_days <= 0:
+        raise ValueError("num_days must be a positive integer")
+
+    day_indices = np.arange(start_day, start_day + num_days, dtype=np.int32)
+    day_of_year = np.mod(day_indices + JITTER_SIN_REFERENCE_DAY, DAYS_PER_YEAR)
+
+    jitter_lon, jitter_lat = jitter_sin(day_indices)
+
+    created = datetime.now(UTC).isoformat()
+
+    # choose your grid resolution (degrees)
+    RES_DEG = 1.0  # e.g. 1°, 0.5°, 0.25°
+
+    # build regular grid centers
+    lon_min = -180.0 + RES_DEG / 2
+    lat_min = -90.0 + RES_DEG / 2
+    nlon = int(round(360.0 / RES_DEG))
+    nlat = int(round(180.0 / RES_DEG))
+    lon_vals = lon_min + RES_DEG * np.arange(nlon)
+    lat_vals = lat_min + RES_DEG * np.arange(nlat)
+
+    lon_track = jitter_lon
+    lat_track = jitter_lat
+
+    # map each observation to nearest grid cell
+    lon_idx = np.clip(np.rint((lon_track - lon_min) / RES_DEG).astype(int), 0, nlon - 1)
+    lat_idx = np.clip(np.rint((lat_track - lat_min) / RES_DEG).astype(int), 0, nlat - 1)
+
+    # time axis (edit TIME_BASE to your actual reference)
+    # If you have a real start date, set it here:
+    TIME_BASE = datetime(2000, 1, 1, tzinfo=UTC)
+    time_vals = np.array(
+        [TIME_BASE + timedelta(days=int(start_day + d)) for d in day_indices],
+        dtype="datetime64[ns]",
+    )
+
+    # sparse mask: 1 where the trajectory is at each time step
+    ntime = len(day_indices)
+    mask = np.zeros((ntime, nlat, nlon), dtype=np.float32)
+    mask[np.arange(ntime), lat_idx, lon_idx] = 1.0
+
+    # build the CF-ish coverage dataset
+    dataset = xr.Dataset(
+        data_vars={
+            "is_on_path": (
+                ("time", "lat", "lon"),
+                mask,
+                {
+                    "long_name": "Trajectory presence mask",
+                    "units": "1",
+                    "comment": (
+                        "1 if the jitter_sin point falls in this cell at this "
+                        "time, else 0"
+                    ),
+                },
+            ),
+        },
+        coords={
+            "time": (
+                "time",
+                time_vals,
+                {"standard_name": "time", "axis": "T"},
+            ),
+            "lat": (
+                "lat",
+                lat_vals,
+                {"units": "degrees_north", "standard_name": "latitude", "axis": "Y"},
+            ),
+            "lon": (
+                "lon",
+                lon_vals,
+                {"units": "degrees_east", "standard_name": "longitude", "axis": "X"},
+            ),
+            # retain original track as auxiliary coords on time
+            "track_lon": (
+                "time",
+                lon_track,
+                {
+                    "units": "degrees_east",
+                    "standard_name": "longitude",
+                    "comment": "Original point longitude per time step",
+                },
+            ),
+            "track_lat": (
+                "time",
+                lat_track,
+                {
+                    "units": "degrees_north",
+                    "standard_name": "latitude",
+                    "comment": "Original point latitude per time step",
+                },
+            ),
+            # time-derived indices as time coords (not data_vars)
+            "day": (
+                "time",
+                day_indices,
+                {"units": "1", "long_name": "Input index forwarded to jitter_sin(i)"},
+            ),
+            "day_of_year": (
+                "time",
+                day_of_year,
+                {"units": "day", "long_name": "Calendar day of year (1-365)"},
+            ),
+            "day_offset": (
+                "time",
+                day_indices,
+                {"units": "day", "long_name": "Offset from reference day 81"},
+            ),
+        },
+        attrs={
+            "title": "jitter_sin daily trajectory (rasterized coverage)",
+            "Conventions": "CF-1.8",
+            "history": (
+                f"{created}: generated by cache_jittersin.build_jittersin_dataset"
+            ),
+            "source": "Fortran jitter_sin routine via ctypes",
+            "start_day": int(start_day),
+            "num_days": int(num_days),
+            "reference_day": JITTER_SIN_REFERENCE_DAY,
+            "grid_resolution_degrees": RES_DEG,
+            "note": (
+                "Constructed as an EDR coverage: dims (time,lat,lon) with "
+                "parameter is_on_path."
+            ),
+        },
+    )
+    return dataset
+
+
+def make_jittersin_geojson(dataset: xr.Dataset) -> dict:
+    """Generate a GeoJSON FeatureCollection of jitter_sin points."""
+    lon = dataset["track_lon"]
+    lat = dataset["track_lat"]
+    coords = [
+        [float(lon_val), float(lat_val)]
+        for lon_val, lat_val in zip(lon.values, lat.values, strict=True)
+    ]
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {"name": "jitter_sin trajectory"},
+                "geometry": {"type": "LineString", "coordinates": coords},
+            }
+        ],
+    }
+    return geojson
+
+
+def cache_jittersin_to_file(
+    start_day: int = 0,
+    num_days: int = 365,
+    overwrite: bool = True,
+) -> Path:
+    """Write the jitter_sin daily trajectory to NetCDF for pygeoapi."""
+    data_path = project_path / "data"
+    data_path.mkdir(parents=True, exist_ok=True)
+
+    cube_path = data_path / "jittersin_cube.nc"
+    gjson_path = data_path / "jittersin_trajectory.geojson"
+
+    if overwrite:
+        cube_path.unlink(missing_ok=True)
+        gjson_path.unlink(missing_ok=True)
+
+    dataset = build_jittersin_dataset(start_day=start_day, num_days=num_days)
+    dataset.to_netcdf(cube_path)
+
+    geojson = make_jittersin_geojson(dataset)
+    gjson_path.write_text(json.dumps(geojson))
+
+    return cube_path
