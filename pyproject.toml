@@ -3,30 +3,27 @@ name = "pi-maker"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-authors = [
-    { name = "August Femtehjell" }
-]
+authors = [{ name = "August Femtehjell" }]
 requires-python = ">=3.12"
 dependencies = [
     "netcdf4>=1.7.3",
     "numpy>=2.3.4",
+    "pygeoapi>=0.21.0",
+    "fsspec>=2024.6.0",
     "xarray>=2025.10.1",
 ]
 
 [project.scripts]
 pi-maker = "pi_maker:cache_pi_to_file"
+pi-maker-cache-jittersin = "pi_maker.cache_jittersin:cache_jittersin_to_file"
+pi-maker-serve-edr = "pi_maker.edr_server:main"
 
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
-dev = [
-    "cfchecker>=4.1.0",
-    "ipython>=9.6.0",
-    "ruff>=0.14.1",
-    "tqdm>=4.67.1",
-]
+dev = ["cfchecker>=4.1.0", "ipython>=9.6.0", "ruff>=0.14.1", "tqdm>=4.67.1"]
 interactive = [
     "geodatasets>=2024.8.0",
     "geopandas>=1.1.1",

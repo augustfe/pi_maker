@@ -55,6 +55,13 @@ $ ./bin/main
 ...
 ```
 
+## OGC API - EDR Server
+
+- Populate the jitter_sin coverage grid with `uv run pi-maker-cache-jittersin` (writes `data/jittersin_edr.nc`).
+- Launch a local pygeoapi instance via `uv run pi-maker-serve-edr` (uses `deploy/pygeoapi/config.yml`).
+- Browse `http://localhost:5000/ogc/edr/collections/jitter-sin-grid` for CoverageJSON responses.
+- For production deployments, point your WSGI server at `pi_maker.edr_server:create_app` and supply the same config file.
+
 ## Cleanup
 
 Please use the

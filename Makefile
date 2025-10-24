@@ -150,7 +150,8 @@ $(BIN_DIR):
 # Clean build and binary files
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
-	rm -f $(CACHE_FILE)
+	rm -f $(DATA_DIR)/*.nc
+	rm -f $(DATA_DIR)/*.json
 
 # Run tests
 test: $(TEST_EXEC)
