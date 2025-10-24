@@ -1,5 +1,7 @@
 import ctypes
 
+from ._lib import lib
+
 
 def jitter_sin(i: int) -> tuple[float, float]:
     """
@@ -11,8 +13,6 @@ def jitter_sin(i: int) -> tuple[float, float]:
     Returns:
         A tuple containing (lon, lat) values.
     """
-    from . import lib
-
     lon = ctypes.c_double()
     lat = ctypes.c_double()
     lib.jitter_sin_c(int(i), ctypes.byref(lon), ctypes.byref(lat))

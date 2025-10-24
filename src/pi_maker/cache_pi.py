@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 import numpy as np
 import xarray as xr
 
+from ._lib import lib
 from .utils import project_path
 
 
@@ -11,8 +12,6 @@ def pi_from_fortran() -> float:
     Call Fortran's pi_opso() via the C ABI wrapper pi_opso_c()
     and return the computed value.
     """
-    from . import lib
-
     return lib.pi_opso_c()
 
 
